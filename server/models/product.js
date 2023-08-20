@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const productSchema = mongoose.Schema(
   {
+    image: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -10,7 +14,7 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    },
+  },
   { timestamps: true }
 );
 
