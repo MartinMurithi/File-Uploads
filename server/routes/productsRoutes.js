@@ -1,52 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { v4: uuid } = require("uuid");
 const { mongoose } = require("mongoose");
-const multer = require("multer");
 const productModel = require("../models/product");
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads/");
-  },
-  filename: function (req, file, cb) {
-    const name = `${uuid()} `;
-    cb(null, `${name}-${file.originalname}`);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-    cb(null, true);
-  } else {
-    cb(
-      "Invalid file type, only jpg and png are allowed!!"
-      ,false
-    );
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 2,
-  },
-  fileFilter: fileFilter,
-});
-
-const fileSizeLimitErrorHandler = (err, req, res, next) => {
-  if (err) {
-    res.status(500);
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      err.message = 'File size too large';
-    }
-    console.log(err);
-  }
-  next();
-};
+const { upload, fileSizeLimitErrorHandler } = require("../config/multer");
 
 router.post(
   "/products/new",
   upload.single("image"),
+  fileSizeLimitErrorHandler,
   async (req, res) => {
     try {
       const product = new productModel({
@@ -59,12 +20,11 @@ router.post(
         message: "Product created successfully",
         product: product,
       };
-      console.log(product.image);
       res.status(201).json(response);
     } catch (err) {
       res.status(500).json({
         message: "An error occured",
-        error: err,
+        error: err.message,
       });
     }
   }
